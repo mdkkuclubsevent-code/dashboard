@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🔍 ล่า QR Code — เปิดโลกกิจกรรม</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --primary: #6C3CE1;
+      --primary-light: #A855F7;
+      --primary-dark: #4F1FBF;
+      --accent: #F59E0B;
+      --success: #10B981;
+      --danger: #EF4444;
+      --bg: #F0EDFF;
+      --card: #FFFFFF;
+      --text: #1F2937;
+      --text-light: #6B7280;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ===== LOGIN ===== */
+    #view-login {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background: linear-gradient(160deg, #4F1FBF 0%, #A855F7 100%);
+    }
+
+    .login-wave {
+      font-size: 72px;
+      margin-bottom: 4px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 28px;
+      padding: 32px 24px 28px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(79, 31, 191, 0.35);
+    }
+
+    .login-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .login-subtitle {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .input-group { text-align: left; margin-bottom: 16px; }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 7px;
+      display: block;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 13px 16px;
+      border: 2px solid #E5E7EB;
+      border-radius: 14px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 60, 225, 0.12);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 6px 20px rgba(108, 60, 225, 0.4);
+      margin-top: 8px;
+    }
+
+    .btn-primary:active { transform: scale(0.97); }
+
+    .login-hint {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 14px;
+    }
+
+    /* ===== Google Sign-In ===== */
+    #gbtn-wrap { display: flex; justify-content: center; margin-bottom: 14px; min-height: 44px; }
+    .login-divider {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--text-light); font-size: 12px; margin: 4px 0 18px;
+    }
+    .login-divider::before, .login-divider::after {
+      content: ''; flex: 1; height: 1px; background: #E5E7EB;
+    }
+    .gmail-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: #F3EEFE; border: 1px solid #E3D8FB; border-radius: 12px;
+      padding: 9px 12px; margin-bottom: 16px; text-align: left;
+    }
+    .gmail-chip .gmail-ico { font-size: 18px; }
+    .gmail-chip .gmail-meta { min-width: 0; flex: 1; }
+    .gmail-chip .gmail-name { font-size: 13px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gmail-chip .gmail-mail { font-size: 11px; color: var(--text-light);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gmail-chip .gmail-x { font-size: 13px; color: var(--text-light); cursor: pointer; padding: 2px 4px; }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      padding: 20px 16px 20px;
+      color: white;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .header-greeting { font-size: 13px; opacity: 0.8; }
+    .header-name { font-size: 20px; font-weight: 800; }
+
+    .points-badge {
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 8px 16px;
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .points-num { font-size: 22px; font-weight: 800; }
+    .points-label { font-size: 11px; opacity: 0.8; }
+
+    .progress-area {
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar-bg {
+      background: rgba(255,255,255,0.25);
+      border-radius: 100px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #FCD34D, #F59E0B);
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ===== TABS ===== */
+    .tab-nav {
+      display: flex;
+      background: white;
+      border-bottom: 1px solid #E5E7EB;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 13px 8px;
+      border: none;
+      background: none;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* ===== CONTENT ===== */
+    .tab-content { display: none; padding: 16px 16px 100px; }
+    .tab-content.active { display: block; }
+
+    /* ===== FILTERS ===== */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 2px solid #E5E7EB;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      background: white;
+      color: var(--text-light);
+      transition: all 0.15s;
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 3px 10px rgba(108, 60, 225, 0.3);
+    }
+
+    /* ===== BOOTH GRID ===== */
+    .booth-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .booth-card {
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.2s;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .booth-card:active { transform: scale(0.96); }
+    .booth-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+
+    .booth-card.visited { background: #F9FAFB; }
+
+    .booth-card-top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .booth-icon { font-size: 34px; margin-bottom: 8px; display: block; }
+
+    .booth-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .booth-card.visited .booth-name { color: var(--text-light); }
+
+    .booth-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .booth-type-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 100px;
+    }
+
+    .type-1 { background: #ECFDF5; color: #065F46; }
+    .type-2 { background: #EFF6FF; color: #1E40AF; }
+    .type-3 { background: #FDF2F8; color: #831843; }
+
+    .booth-pts { font-size: 13px; font-weight: 800; color: var(--accent); }
+
+    .done-check {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 22px; height: 22px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      font-weight: 700;
+    }
+
+    /* ===== REWARDS (แลกของรางวัล) ===== */
+    .rewards-balance {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 20px;
+      padding: 18px 20px;
+      color: white;
+      text-align: center;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(108, 60, 225, 0.3);
+    }
+    .rewards-balance-lbl { font-size: 13px; opacity: 0.85; }
+    .rewards-balance-num { font-size: 38px; font-weight: 800; line-height: 1.2; }
+    .rewards-balance-num span { font-size: 18px; font-weight: 700; }
+    .rewards-balance-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+    .reward-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: white;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .reward-card.cant { opacity: 0.62; }
+
+    .reward-ic {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: #F5F3FF;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; flex-shrink: 0;
+    }
+
+    .reward-mid { flex: 1; min-width: 0; }
+    .reward-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .reward-desc { font-size: 12px; color: var(--text-light); line-height: 1.4; margin: 2px 0 5px; }
+    .reward-cost { font-size: 14px; font-weight: 800; color: var(--accent); }
+
+    .reward-count {
+      font-size: 10px; font-weight: 700; color: var(--success);
+      background: #ECFDF5; border-radius: 100px; padding: 2px 8px; margin-left: 4px;
+      white-space: nowrap;
+    }
+
+    .reward-btn {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white; border: none; border-radius: 12px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(108, 60, 225, 0.3);
+      transition: transform 0.1s;
+    }
+    .reward-btn:active { transform: scale(0.95); }
+    .reward-btn.disabled {
+      background: #E5E7EB; color: var(--text-light);
+      box-shadow: none; cursor: not-allowed; font-size: 12px; font-weight: 600;
+    }
+
+    /* กล่องกรอกรหัสสตาฟใน modal */
+    .staff-box {
+      background: #F9FAFB; border: 1px dashed #D1D5DB;
+      border-radius: 14px; padding: 14px; margin-bottom: 18px;
+    }
+    .staff-label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .staff-err { font-size: 12px; color: var(--danger); font-weight: 700; margin-top: 6px; min-height: 16px; }
+
+    /* ===== PREVIEW BAR ===== */
+    .preview-bar {
+      background: #FEF3C7; color: #92400E;
+      font-size: 12px; font-weight: 700; text-align: center;
+      padding: 7px 12px;
+    }
+
+    /* ===== ADMIN ===== */
+    .admin-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    .admin-stat {
+      background: white; border-radius: 16px; padding: 14px;
+      text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .admin-stat:first-child { grid-column: span 2; }
+    .admin-stat-num { font-size: 26px; font-weight: 800; line-height: 1.2; }
+    .admin-stat-lbl { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+    .admin-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: white; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;
+      font-size: 14px; box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    }
+
+    .admin-person {
+      display: flex; align-items: center; gap: 10px;
+      background: white; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    }
+    .admin-person-rank {
+      width: 26px; text-align: center; font-weight: 800;
+      color: var(--text-light); flex-shrink: 0; font-size: 14px;
+    }
+    .admin-person-info { flex: 1; min-width: 0; }
+    .admin-person-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .admin-person-id { font-size: 11px; color: var(--text-light); }
+    .admin-person-pts {
+      display: flex; flex-direction: column; align-items: flex-end;
+      font-size: 12px; font-weight: 700; gap: 1px; flex-shrink: 0;
+    }
+
+    /* ===== BOOTH DETAIL VIEW ===== */
+    #view-booth {
+      min-height: 100vh;
+      background: var(--bg);
+      padding-bottom: 40px;
+    }
+
+    .booth-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: white;
+      box-shadow: 0 1px 0 #E5E7EB;
+    }
+
+    .back-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 2px solid #E5E7EB;
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px; flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .back-btn:active { background: #F3F4F6; }
+
+    .detail-title { font-size: 17px; font-weight: 800; color: var(--text); }
+
+    .detail-body { padding: 20px 16px; }
+
+    .booth-hero-card {
+      background: white;
+      border-radius: 22px;
+      padding: 28px 20px 22px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+
+    .hero-icon { font-size: 60px; margin-bottom: 12px; }
+    .hero-name { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .hero-desc { font-size: 14px; color: var(--text-light); margin-bottom: 16px; line-height: 1.6; }
+
+    .reward-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+      border-radius: 100px;
+      padding: 8px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #78350F;
+    }
+
+    /* Activity card */
+    .activity-card {
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+
+    .act-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .act-sub { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+
+    /* QR scan */
+    .qr-box {
+      width: 160px; height: 160px;
+      background: #F3F4F6;
+      border-radius: 16px;
+      border: 2px dashed #D1D5DB;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 90px;
+      margin: 0 auto 22px;
+    }
+
+    .btn-scan {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white; border: none; border-radius: 14px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 6px 20px rgba(108, 60, 225, 0.35);
+      transition: transform 0.1s;
+    }
+
+    .btn-scan:active { transform: scale(0.97); }
+
+    /* QR live camera reader */
+    #reader {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+    }
+    #reader video { border-radius: 16px; display: block; width: 100% !important; }
+    .scan-hint {
+      font-size: 13px; color: var(--text-light);
+      text-align: center; margin-bottom: 12px; line-height: 1.5;
+    }
+    .btn-ghost {
+      width: 100%; padding: 12px;
+      background: #F3F4F6; color: var(--text);
+      border: none; border-radius: 14px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn-ghost:active { background: #E5E7EB; }
+    .scan-error {
+      background: #FEE2E2; color: #7F1D1D;
+      border-radius: 12px; padding: 12px 14px;
+      font-size: 13px; line-height: 1.5; margin-bottom: 12px;
+    }
+
+    /* Question */
+    .question-text {
+      font-size: 16px; font-weight: 700; color: var(--text);
+      margin-bottom: 20px; line-height: 1.6;
+    }
+
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .opt-btn {
+      padding: 14px 10px;
+      border: 2px solid #E5E7EB; border-radius: 14px;
+      background: white; font-family: 'Sarabun', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-align: center; transition: all 0.15s; line-height: 1.4;
+    }
+
+    .opt-btn:hover { border-color: var(--primary); background: #F5F3FF; }
+    .opt-btn.correct { background: #D1FAE5; border-color: var(--success); color: #065F46; }
+    .opt-btn.wrong   { background: #FEE2E2; border-color: var(--danger);  color: #7F1D1D; }
+
+    .q-result {
+      margin-top: 16px; text-align: center;
+      font-weight: 700; font-size: 16px; min-height: 28px;
+    }
+
+    /* Memory game */
+    .game-stats {
+      display: flex; justify-content: space-between;
+      font-size: 14px; color: var(--text-light); font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mc {
+      aspect-ratio: 1;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease;
+      cursor: pointer;
+    }
+
+    .mc.flipped { transform: rotateY(180deg); }
+
+    .mc-face {
+      position: absolute; inset: 0;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .mc-back {
+      background: linear-gradient(135deg, #6C3CE1, #A855F7);
+      font-size: 20px; color: rgba(255,255,255,0.6);
+    }
+
+    .mc-front {
+      background: #EDE9FE;
+      border: 2px solid #C4B5FD;
+      transform: rotateY(180deg);
+    }
+
+    .mc.matched .mc-front {
+      background: #D1FAE5;
+      border-color: #6EE7B7;
+    }
+
+    .game-msg {
+      text-align: center; font-weight: 700; font-size: 15px;
+      min-height: 26px; color: var(--success);
+    }
+
+    /* Already done */
+    .done-state {
+      text-align: center; padding: 24px 0;
+    }
+    .done-state-icon { font-size: 52px; margin-bottom: 10px; }
+    .done-state-text { font-size: 16px; font-weight: 700; color: var(--success); }
+    .done-state-sub { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+
+    /* ===== REWARD MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(17, 8, 43, 0.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 28px;
+      padding: 36px 28px 28px;
+      text-align: center;
+      width: 100%;
+      max-width: 320px;
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.7) translateY(20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-emoji { font-size: 68px; margin-bottom: 10px; }
+    .modal-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .modal-sub { font-size: 14px; color: var(--text-light); margin-bottom: 16px; }
+    .modal-pts { font-size: 48px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+    .modal-total { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%; transform: translateX(-50%);
+      background: #1F2937; color: white;
+      padding: 10px 20px; border-radius: 100px;
+      font-size: 14px; font-weight: 600;
+      z-index: 300;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s both;
+    }
+
+    @keyframes toastIn { from { opacity:0; top:4px; } to { opacity:1; top:20px; } }
+    @keyframes toastOut { to { opacity:0; top:4px; } }
+
+    /* ===== COMPLETION BANNER ===== */
+    .completion-banner {
+      background: linear-gradient(135deg, #F59E0B, #EF4444);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      color: white;
+      text-align: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    /* Slide-up animation */
+    .anim { animation: slideUp 0.3s ease both; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ===== LEADERBOARD (อันดับสด) ===== */
+    .rank-head {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    }
+    .rank-refresh {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid #E5E7EB; background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px; flex-shrink: 0;
+    }
+    .rank-refresh:active { background: #F3F4F6; }
+    .rank-row {
+      display: flex; align-items: center; gap: 10px;
+      background: white; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    }
+    .rank-row.me { background: linear-gradient(135deg, #F5F3FF, #EDE9FE); border: 2px solid var(--primary); }
+    .rank-pos { width: 36px; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-light); flex-shrink: 0; }
+    .rank-av { font-size: 22px; flex-shrink: 0; }
+    .rank-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rank-you { font-size: 10px; background: var(--primary); color: white; border-radius: 100px; padding: 1px 7px; margin-left: 4px; }
+    .rank-pts { font-size: 14px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+
+    /* ===== CLUB SIGNUP / IMAGE (หน้าบูธ) ===== */
+    .hero-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 16px; margin-bottom: 12px; }
+    .btn-signup {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 16px; padding: 13px;
+      background: white; border: 2px solid var(--primary); color: var(--primary);
+      border-radius: 14px; font-family: 'Sarabun', sans-serif;
+      font-size: 15px; font-weight: 700; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-signup:active { background: #F5F3FF; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// =========================================================
+//  CONFIG — ใส่ URL Google Apps Script หลัง deploy แล้ว
+// =========================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbxGoLNXNnMCyfwW1vKYPr57jSx5-jWsr_tN0Oun5uBqS4OrTzCUBXz9jcNuXbDirsm2/exec';
+
+// =========================================================
+//  🔑 Google Sign-In — วาง OAuth Client ID ตรงนี้ (จาก Google Cloud Console)
+//     ตัวอย่าง: '1234567890-abcdefg.apps.googleusercontent.com'
+//     ⚠️ อย่าลืมใส่โดเมนเว็บ (เช่น https://xxx.netlify.app) ใน "Authorized JavaScript origins"
+// =========================================================
+const GOOGLE_CLIENT_ID = '282524836423-5cmgeln4hube6gtjikjreco7t8p7m424.apps.googleusercontent.com';
+
+// จำกัดเฉพาะอีเมลโดเมนนี้ (อีเมลนักศึกษา มข.) — ถ้าอยากรับทุกอีเมลให้ตั้งเป็น ''
+const ALLOWED_EMAIL_DOMAIN = 'kkumail.com';
+
+// 🔒 รหัสสตาฟ (PIN) ย้ายไปตรวจที่ฝั่งเซิร์ฟเวอร์แล้ว (backend-Code.gs → STAFF_PIN)
+//    จึงไม่เก็บไว้ในไฟล์นี้ เพื่อไม่ให้น้องเปิด View Source เห็นรหัส
+
+// รหัสแอดมิน — ใช้ในช่อง "รหัสนักศึกษา" เพื่อเข้าหน้าภาพรวม (ข้าม whitelist)
+const ADMIN_ID = '0000001';
+
+// รหัสพรีวิว — เข้าเล่นหน้าเหมือนน้องได้ทุกอย่าง แต่ "ไม่บันทึก" ขึ้น backend (ไว้ลองดูระบบ)
+const PREVIEW_ID = '0000002';
+
+// =========================================================
+//  รายชื่อรหัสนักศึกษาที่มีสิทธิ์เข้าร่วม (ล็อกอินได้เฉพาะรหัสในนี้)
+//  🔧 เพิ่ม/แก้รหัสได้ที่นี่ (รูปแบบ "693070001-1")
+// =========================================================
+const STUDENT_IDS = [
+  "693070001-1", "693070002-9", "693070003-7", "693070004-5", "693070005-3", "693070006-1",
+  "693070007-9", "693070008-7", "693070009-5", "693070010-0", "693070011-8", "693070012-6",
+  "693070013-4", "693070014-2", "693070015-0", "693070016-8", "693070017-6", "693070018-4",
+  "693070019-2", "693070020-7", "693070021-5", "693070022-3", "693070023-1", "693070024-9",
+  "693070025-7", "693070026-5", "693070027-3", "693070028-1", "693070029-9", "693070030-4",
+  "693070031-2", "693070032-0", "693070033-8", "693070034-6", "693070035-4", "693070036-2",
+  "693070037-0", "693070038-8", "693070039-6", "693070040-1", "693070041-9", "693070042-7",
+  "693070043-5", "693070044-3", "693070045-1", "693070046-9", "693070047-7", "693070048-5",
+  "693070049-3", "693070050-8", "693070051-6", "693070052-4", "693070053-2", "693070054-0",
+  "693070055-8", "693070056-6", "693070057-4", "693070058-2", "693070059-0", "693070060-5",
+  "693070061-3", "693070062-1", "693070063-9", "693070064-7", "693070065-5", "693070066-3",
+  "693070067-1", "693070068-9", "693070069-7", "693070070-2", "693070071-0", "693070072-8",
+  "693070073-6", "693070074-4", "693070075-2", "693070076-0", "693070077-8", "693070078-6",
+  "693070079-4", "693070080-9", "693070081-7", "693070082-5", "693070083-3", "693070084-1",
+  "693070085-9", "693070086-7", "693070087-5", "693070088-3", "693070089-1", "693070090-6",
+  "693070091-4", "693070092-2", "693070093-0", "693070094-8", "693070095-6", "693070096-4",
+  "693070121-1", "693070122-9", "693070123-7", "693070124-5", "693070125-3", "693070126-1",
+  "693070127-9", "693070128-7", "693070129-5", "693070130-0", "693070131-8", "693070132-6",
+  "693070133-4", "693070134-2", "693070135-0", "693070136-8", "693070137-6", "693070138-4",
+  "693070139-2", "693070140-7", "693070141-5", "693070142-3", "693070143-1", "693070144-9",
+  "693070145-7", "693070146-5", "693070147-3", "693070148-1", "693070149-9", "693070150-4",
+  "693070151-2", "693070152-0", "693070153-8", "693070154-6", "693070155-4", "693070156-2",
+  "693070157-0", "693070158-8", "693070159-6", "693070160-1", "693070161-9", "693070162-7",
+  "693070163-5", "693070164-3", "693070165-1", "693070166-9", "693070167-7", "693070168-5",
+  "693070169-3", "693070170-8", "693070171-6", "693070172-4", "693070173-2", "693070174-0",
+  "693070175-8", "693070176-6", "693070177-4", "693070178-2", "693070179-0", "693070180-5",
+  "693070181-3", "693070182-1", "693070183-9", "693070184-7", "693070185-5", "693070186-3",
+  "693070187-1", "693070188-9", "693070189-7", "693070190-2", "693070191-0", "693070192-8",
+  "693070193-6", "693070194-4", "693070195-2", "693070196-0", "693070197-8", "693070198-6",
+  "693070199-4", "693070200-5", "693070201-3", "693070202-1", "693070203-9", "693070204-7",
+  "693070205-5", "693070206-3", "693070207-1", "693070208-9", "693070209-7", "693070210-2",
+  "693070211-0", "693070212-8", "693070213-6", "693070214-4", "693070215-2", "693070216-0",
+  "693070217-8", "693070218-6", "693070219-4", "693070220-9", "693070221-7", "693070222-5",
+  "693070223-3", "693070224-1", "693070225-9", "693070226-7", "693070227-5", "693070228-3",
+  "693070229-1", "693070230-6", "693070231-4", "693070232-2", "693070233-0", "693070234-8",
+  "693070235-6", "693070236-4", "693070237-2", "693070238-0", "693070239-8", "693070240-3",
+  "693070241-1", "693070242-9", "693070243-7", "693070244-5", "693070245-3", "693070246-1",
+  "693070247-9", "693070248-7", "693070249-5", "693070250-0", "693070251-8", "693070252-6",
+  "693070253-4", "693070254-2", "693070255-0", "693070256-8", "693070257-6", "693070258-4",
+  "693070259-2", "693070260-7", "693070261-5", "693070262-3", "693070263-1", "693070264-9",
+  "693070265-7", "693070266-5", "693070267-3", "693070268-1", "693070269-9", "693070270-4",
+  "693070271-2", "693070272-0", "693070273-8", "693070274-6", "693070275-4", "693070276-2",
+  "693070277-0", "693070278-8", "693070279-6", "693070280-1", "693070281-9", "693070282-7",
+  "693070283-5", "693070284-3", "693070285-1", "693070286-9", "693070287-7", "693070288-5",
+  "693070289-3", "693070290-8", "693070291-6", "693070292-4", "693070317-4", "693070318-2",
+  "693070319-0", "693070320-5", "693070321-3", "693070322-1", "693070323-9", "693070324-7",
+  "693070325-5", "693070326-3", "693070327-1", "693070328-9", "693070329-7", "693070330-2",
+  "693070331-0", "693070332-8", "693070333-6", "693070334-4", "693070335-2", "693070336-0",
+  "693070337-8", "693070360-3", "693070361-1", "693070362-9", "693070363-7", "693070364-5",
+  "693070365-3", "693070366-1", "693070367-9", "693070368-7", "693070369-5", "693070370-0",
+  "693070371-8", "693070372-6", "693070373-4",
+];
+
+// map รหัสแบบเลขล้วน (ตัด - ออก) → รหัสรูปแบบมาตรฐาน เพื่อให้พิมพ์มี/ไม่มี - ก็เข้าได้
+const _ID_MAP = {};
+STUDENT_IDS.forEach(x => { _ID_MAP[x.replace(/\D/g, '')] = x; });
+// คืนรหัสมาตรฐาน (มี -) ถ้าพบในรายชื่อ, ไม่พบคืน null
+function lookupStudentId(input) {
+  const d = String(input || '').replace(/\D/g, '');
+  return _ID_MAP[d] || null;
+}
+
+// =========================================================
+//  DATA
+// =========================================================
+
+const BOOTHS = [
+  // TYPE 1 — scan direct (1 pt)
+  { id:1,  name:'ชมรมดนตรีไทย',              icon:'🎵', type:1, pts:1, color:'#FF6B6B',
+    desc:'สืบสานดนตรีไทยพื้นบ้าน อนุรักษ์วัฒนธรรมดนตรีไทยให้คงอยู่' },
+  { id:2,  name:'ชมรมถ่ายภาพ',               icon:'📷', type:1, pts:1, color:'#4ECDC4',
+    desc:'บันทึกช่วงเวลาสวยๆ ด้วยกล้อง DSLR มือถือ และ Street Photography' },
+  { id:3,  name:'ชมรมศิลปะ',                 icon:'🎨', type:1, pts:1, color:'#45B7D1',
+    desc:'สร้างสรรค์งานศิลปะหลากรูปแบบ วาดภาพ ประดิษฐ์ หัตถกรรม' },
+  { id:4,  name:'ชมรมกีฬา',                  icon:'⚽', type:1, pts:1, color:'#48BB78',
+    desc:'กีฬาหลากหลายประเภท ฟุตบอล บาสเก็ตบอล วอลเลย์บอล แบดมินตัน' },
+  { id:5,  name:'ชมรมอนุรักษ์สิ่งแวดล้อม',   icon:'🌿', type:1, pts:1, color:'#68D391',
+    desc:'รักษ์โลก ดูแลสิ่งแวดล้อม กิจกรรมปลูกต้นไม้ รีไซเคิล ลด Carbon' },
+
+  // TYPE 2 — answer question (2 pts)
+  { id:6,  name:'ชมรมภาษาอังกฤษ', icon:'🇬🇧', type:2, pts:2, color:'#F6C90E',
+    desc:'ฝึกภาษาอังกฤษในบรรยากาศสนุก กับ Speaking Club และ Workshop',
+    q:'ประโยค "How are you?" มีความหมายว่าอะไร?',
+    opts:['คุณชื่ออะไร','คุณเป็นยังไงบ้าง','คุณอยู่ที่ไหน','คุณทำอะไรอยู่'], ans:1 },
+  { id:7,  name:'ชมรมภาษาญี่ปุ่น', icon:'🎌', type:2, pts:2, color:'#E78EA9',
+    desc:'เรียนภาษาและวัฒนธรรมญี่ปุ่น อนิเมะ มังงะ เพลง J-Pop',
+    q:'"สวัสดี" ในภาษาญี่ปุ่นคือข้อใด?',
+    opts:['ありがとう','こんにちは','すみません','さようなら'], ans:1 },
+  { id:8,  name:'ชมรมภาษาจีน',    icon:'🐉', type:2, pts:2, color:'#FC8C60',
+    desc:'เรียนภาษาจีนกลาง (แมนดาริน) และวัฒนธรรมจีนโบราณ',
+    q:'"ขอบคุณ" ในภาษาจีนกลางคือข้อใด?',
+    opts:['你好 (nǐ hǎo)','谢谢 (xièxiè)','再见 (zàijiàn)','对不起 (duìbuqǐ)'], ans:1 },
+  { id:9,  name:'ชมรมดนตรีสากล',  icon:'🎸', type:2, pts:2, color:'#B39DDB',
+    desc:'เล่นดนตรีสากล กีตาร์ เปียโน กลอง คีย์บอร์ด ร้องเพลง',
+    q:'โน้ตดนตรีสากลพื้นฐานมีกี่ตัว?',
+    opts:['5 ตัว (โด เร มี ฟา ซอล)','7 ตัว (โด ถึง ที)','8 ตัว','12 ตัว'], ans:1 },
+  { id:10, name:'ชมรมคอมพิวเตอร์', icon:'💻', type:2, pts:2, color:'#4DB6AC',
+    desc:'เขียนโปรแกรม พัฒนาเว็บ แอป AI Machine Learning และ Cybersecurity',
+    q:'ภาษาโปรแกรมใดใช้สร้างโครงสร้างของหน้าเว็บไซต์?',
+    opts:['Python','HTML','Java','C++'], ans:1 },
+  { id:11, name:'ชมรมเต้น',        icon:'💃', type:2, pts:2, color:'#F48FB1',
+    desc:'K-Pop Cover, Hip-hop, Contemporary Dance และ Street Dance',
+    q:'K-Pop มีต้นกำเนิดจากประเทศใด?',
+    opts:['ญี่ปุ่น','เกาหลีใต้','จีน','ไต้หวัน'], ans:1 },
+  { id:12, name:'ชมรมละคร',        icon:'🎭', type:2, pts:2, color:'#CE93D8',
+    desc:'แสดงละครเวที ฝึกทักษะการแสดง บทพูด และการแสดงออกทางอารมณ์',
+    q:'"ละครเวที" ในภาษาอังกฤษคือคำใด?',
+    opts:['Cinema','Theater','Opera','Circus'], ans:1 },
+
+  // TYPE 3 — memory mini-game (3 pts)
+  { id:13, name:'ชมรมหมากรุก',  icon:'♟️', type:3, pts:3, color:'#90A4AE',
+    desc:'หมากรุกไทยและสากล พัฒนาการคิดเชิงกลยุทธ์ สมาธิ และ IQ' },
+  { id:14, name:'ชมรม E-Sports', icon:'🎮', type:3, pts:3, color:'#42A5F5',
+    desc:'กีฬา E-Sports แข่งขัน ROV, VALORANT, FIFA, Minecraft' },
+  { id:15, name:'ชมรมหุ่นยนต์',  icon:'🤖', type:3, pts:3, color:'#7C6EE7',
+    desc:'ออกแบบ สร้าง และเขียนโปรแกรมหุ่นยนต์ แข่งขันระดับประเทศ' },
+];
+
+// =========================================================
+//  REWARDS — ของรางวัลที่ใช้แต้มแลก (หักแต้มเมื่อแลก)
+//  🔧 แก้ชื่อ/ราคา/ไอคอน ได้ตามของจริงที่ทีมเตรียมไว้
+//  cost = จำนวนแต้มที่ต้องใช้แลก
+//  stock = จำนวนที่มี (ใส่ null = ไม่จำกัด)
+// =========================================================
+const REWARDS = [
+  { id:'r1', name:'สติกเกอร์ชมรม',  icon:'🌟', cost:2,  stock:null,
+    desc:'สติกเกอร์ลายชมรมสุดน่ารัก เลือกได้ 1 ใบ' },
+  { id:'r2', name:'ที่คั่นหนังสือ',  icon:'🔖', cost:3,  stock:null,
+    desc:'ที่คั่นหนังสือลายเฉพาะงานเปิดโลกกิจกรรม' },
+  { id:'r3', name:'พวงกุญแจน่ารัก',  icon:'🔑', cost:5,  stock:null,
+    desc:'พวงกุญแจของที่ระลึกประจำงาน' },
+  { id:'r4', name:'กระเป๋าผ้า',       icon:'👜', cost:8,  stock:null,
+    desc:'กระเป๋าผ้าใส่ของ ใช้ได้จริงทุกวัน' },
+  { id:'r5', name:'เสื้อยืดงาน',      icon:'👕', cost:12, stock:null,
+    desc:'เสื้อยืดลิมิเต็ดเอดิชันของงาน (มีจำนวนจำกัด)' },
+  { id:'r6', name:'ลุ้นรางวัลใหญ่',   icon:'🎁', cost:15, stock:null,
+    desc:'แลกสิทธิ์ลุ้นรางวัลใหญ่ประจำงาน!' },
+];
+
+// =========================================================
+//  ข้อมูลชมรม — ลิงก์สมัคร + รูปภาพ (เป้าหมายงาน: แนะนำชมรม)
+//  🔧 เติมลิงก์/รูปของแต่ละชมรมได้ที่นี่ (key = หมายเลขบูธ)
+//     signup : ลิงก์ฟอร์มสมัคร / เพจ / IG ของชมรม (เว้นว่าง = ใช้ SIGNUP_URL_DEFAULT)
+//     img    : ลิงก์รูปภาพชมรม (เว้นว่าง = แสดงไอคอนอีโมจิแทน)
+// =========================================================
+// ถ้าทุกชมรมใช้ฟอร์มสมัครเดียวกัน ใส่ลิงก์รวมตรงนี้ (ไม่งั้นเว้นว่างไว้)
+const SIGNUP_URL_DEFAULT = '';
+
+const CLUB_INFO = {
+  1:  { signup:'', img:'' },   // ชมรมดนตรีไทย
+  2:  { signup:'', img:'' },   // ชมรมถ่ายภาพ
+  3:  { signup:'', img:'' },   // ชมรมศิลปะ
+  4:  { signup:'', img:'' },   // ชมรมกีฬา
+  5:  { signup:'', img:'' },   // ชมรมอนุรักษ์สิ่งแวดล้อม
+  6:  { signup:'', img:'' },   // ชมรมภาษาอังกฤษ
+  7:  { signup:'', img:'' },   // ชมรมภาษาญี่ปุ่น
+  8:  { signup:'', img:'' },   // ชมรมภาษาจีน
+  9:  { signup:'', img:'' },   // ชมรมดนตรีสากล
+  10: { signup:'', img:'' },   // ชมรมคอมพิวเตอร์
+  11: { signup:'', img:'' },   // ชมรมเต้น
+  12: { signup:'', img:'' },   // ชมรมละคร
+  13: { signup:'', img:'' },   // ชมรมหมากรุก
+  14: { signup:'', img:'' },   // ชมรม E-Sports
+  15: { signup:'', img:'' },   // ชมรมหุ่นยนต์
+};
+function clubInfo(id)   { return CLUB_INFO[id] || {}; }
+function clubImg(id)    { return (clubInfo(id).img || '').trim(); }
+function clubSignup(id) { return (clubInfo(id).signup || '').trim() || SIGNUP_URL_DEFAULT; }
+
+const AVATARS = ['🌟','😎','🚀','🎯','⚡','🌸','🦋','🌈','🎭','🔥','🐉','🎪'];
+
+const GAME_EMOJIS = ['🌟','🎯','🏆','🎪','🎡','🎢','🎨','🎭'];
+
+// =========================================================
+//  PERSISTENCE — localStorage
+// =========================================================
+function loadState() {
+  try {
+    const u = localStorage.getItem('qrhunt-user');
+    if (u) S.user = JSON.parse(u);
+    const d = localStorage.getItem('qrhunt-done');
+    if (d) S.done = new Set(JSON.parse(d));
+    const p = localStorage.getItem('qrhunt-pts');
+    if (p) S.pts = parseInt(p) || 0;
+    const rd = localStorage.getItem('qrhunt-redeemed');
+    if (rd) S.redeemed = parseInt(rd) || 0;
+    const rl = localStorage.getItem('qrhunt-redemptions');
+    if (rl) S.redemptions = JSON.parse(rl) || [];
+  } catch(e) {}
+}
+// บันทึกลงเครื่อง (localStorage) เท่านั้น — ไม่ยุ่งกับแต้มบนเซิร์ฟเวอร์
+// แต้มจริงถูกควบคุมโดย backend ผ่าน action 'visit' / 'redeem'
+function saveState() {
+  try {
+    if (S.user) localStorage.setItem('qrhunt-user', JSON.stringify(S.user));
+    localStorage.setItem('qrhunt-done', JSON.stringify([...S.done]));
+    localStorage.setItem('qrhunt-pts', String(S.pts));
+    localStorage.setItem('qrhunt-redeemed', String(S.redeemed));
+    localStorage.setItem('qrhunt-redemptions', JSON.stringify(S.redemptions));
+  } catch(e) {}
+}
+function clearState() {
+  try {
+    ['qrhunt-user','qrhunt-done','qrhunt-pts','qrhunt-redeemed','qrhunt-redemptions']
+      .forEach(k => localStorage.removeItem(k));
+  } catch(e) {}
+  Object.assign(S, { user:null, pts:0, done:new Set(), redeemed:0, redemptions:[],
+                     tab:'booths', filter:'all', booth:null, game:null });
+}
+
+// แต้มคงเหลือที่ยังใช้แลกของได้ = แต้มที่ได้รับ − แต้มที่แลกไปแล้ว
+function pointsLeft() { return Math.max(0, S.pts - S.redeemed); }
+
+// =========================================================
+//  API — Google Sheets backend
+// =========================================================
+
+// ลงทะเบียน/อัปเดตโปรไฟล์ตอนล็อกอิน (ส่งแค่ ชื่อ/avatar — ไม่ส่งแต้ม)
+// คืนค่าแต้มจริงจากเซิร์ฟเวอร์ เพื่อกู้คืนความคืบหน้า (เปลี่ยนเครื่อง/ล้างเบราว์เซอร์ก็ไม่หาย)
+function apiSaveProfile() {
+  return new Promise(resolve => {
+    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve(null); return; }
+    const p = new URLSearchParams({
+      action: 'save', id: S.user.id, name: S.user.name, av: S.user.av,
+      email: S.user.email || '',
+    });
+    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  });
+}
+
+// บันทึกการเยี่ยมบูธ — เซิร์ฟเวอร์เป็นผู้ให้แต้ม (กันปลอมแต้ม) คืนแต้มจริงกลับมา
+//  correct = ตอบถูกไหม (เฉพาะบูธตอบคำถาม), token = ค่า t จาก QR (เฉพาะบูธสแกน)
+function apiVisit(boothId, correct, token) {
+  return new Promise(resolve => {
+    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
+    const p = new URLSearchParams({
+      action: 'visit', id: S.user.id, name: S.user.name, av: S.user.av,
+      booth: String(boothId), correct: correct ? '1' : '0', t: token || '',
+    });
+    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  });
+}
+
+// แลกของรางวัล — ส่ง PIN ไปตรวจที่เซิร์ฟเวอร์ + เซิร์ฟเวอร์เช็คแต้มคงเหลือเอง
+function apiRedeem(reward, pin) {
+  return new Promise(resolve => {
+    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
+    const p = new URLSearchParams({
+      action: 'redeem', id: S.user.id, name: S.user.name,
+      reward: reward.name, cost: String(reward.cost), pin: pin || '',
+    });
+    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  });
+}
+
+// ดึงข้อมูลจาก backend (ใช้ในหน้าแอดมิน)
+function apiGet(action, cb) {
+  if (!API_URL) { cb(null); return; }
+  fetch(API_URL + '?action=' + action)
+    .then(r => r.json())
+    .then(d => cb(d))
+    .catch(() => cb(null));
+}
+
+// =========================================================
+//  STATE
+// =========================================================
+
+let S = {
+  user: null,
+  googleEmail: null, // อีเมลจาก Google Sign-In (ถ้ามี)
+  pts: 0,            // แต้มสะสมที่ได้รับทั้งหมด (จากบูธ)
+  redeemed: 0,       // แต้มที่แลกของรางวัลไปแล้ว (รวม)
+  redemptions: [],   // ประวัติการแลก [{id,name,cost,time}]
+  done: new Set(),
+  tab: 'booths',
+  filter: 'all',
+  booth: null,
+  game: null,
+  fromScan: null, // booth id ที่เข้ามาผ่านการสแกน QR จริง (?booth=N)
+  tokens: {},     // เก็บ token ของแต่ละบูธที่ได้จากการสแกน QR (?t=...) เพื่อส่งไปยืนยันกับเซิร์ฟเวอร์
+};
+
+// แต้มของบูธ (ใช้แสดงผลทันที/โหมดพรีวิว) — แต้มจริงยึดค่าจากเซิร์ฟเวอร์เสมอ
+function boothPointsLocal(id, correct) {
+  const b = BOOTHS.find(x => x.id === id);
+  if (!b) return 0;
+  if (b.type === 2) return correct ? 2 : 1;
+  return b.pts;
+}
+
+let _scanner = null; // instance ของ Html5Qrcode ที่กำลังเปิดกล้องอยู่
+
+// =========================================================
+//  ROOT RENDER
+// =========================================================
+
+const $app = document.getElementById('app');
+
+function render() {
+  if (!S.user)          { $app.innerHTML = loginHTML(); bindLogin(); return; }
+  if (S.user.isAdmin)   { $app.innerHTML = adminHTML(); bindAdmin(); return; }
+  if (S.booth !== null) { $app.innerHTML = boothHTML(S.booth); bindBooth(S.booth); return; }
+  $app.innerHTML = mainHTML(); bindMain();
+}
+
+// =========================================================
+//  LOGIN
+// =========================================================
+
+function loginHTML() {
+  return `
+  <div id="view-login">
+    <div class="login-wave">🔍</div>
+    <div class="login-card">
+      <div class="login-title">ล่า QR Code</div>
+      <div class="login-subtitle">เปิดโลกกิจกรรม<br>ลงทะเบียนเพื่อเริ่มเก็บแต้มได้เลย!</div>
+
+      <!-- ปุ่มเข้าสู่ระบบด้วย Google (เฉพาะอีเมล @kkumail.com) -->
+      <div id="gbtn-wrap"></div>
+      <div id="gmail-chip-slot"></div>
+      <div class="login-divider">หรือกรอกเอง</div>
+
+      <div class="input-group">
+        <label class="input-label">ชื่อ-นามสกุล</label>
+        <input id="iname" class="input-field" type="text" placeholder="เช่น เป็นหนึ่ง อยากเป็นหมอ" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label class="input-label">รหัสนักศึกษา</label>
+        <input id="iid" class="input-field" type="text" placeholder="เช่น 693070001-1" maxlength="13" autocomplete="off">
+      </div>
+      <button class="btn-primary" id="btn-login">🚀 เริ่มเล่นเลย!</button>
+      <div class="login-hint">* ข้อมูลนี้ใช้ยืนยันตัวตนตอนแลกของรางวัลหน้างาน</div>
+    </div>
+  </div>`;
+}
+
+function bindLogin() {
+  document.getElementById('iname').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('iid').focus();
+  });
+  document.getElementById('iid').addEventListener('keypress', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('btn-login').onclick = doLogin;
+  initGoogleSignin();
+}
+
+// =========================================================
+//  Google Sign-In (GIS) — ดึงชื่อ + อีเมลอัตโนมัติ
+// =========================================================
+let _gsiTries = 0;
+function initGoogleSignin() {
+  const wrap = document.getElementById('gbtn-wrap');
+  if (!wrap) return;
+  // ยังไม่ได้วาง Client ID → ซ่อนปุ่ม ใช้กรอกเองได้ตามปกติ
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf('PASTE_YOUR') === 0) {
+    wrap.style.display = 'none';
+    const dv = document.querySelector('.login-divider'); if (dv) dv.style.display = 'none';
+    return;
+  }
+  // รอไลบรารี GIS โหลดเสร็จก่อน (โหลดแบบ async)
+  if (!(window.google && google.accounts && google.accounts.id)) {
+    if (_gsiTries++ < 40) return void setTimeout(initGoogleSignin, 150);
+    wrap.style.display = 'none'; return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    hd: ALLOWED_EMAIL_DOMAIN || undefined,
+  });
+  google.accounts.id.renderButton(wrap, {
+    type: 'standard', theme: 'outline', size: 'large',
+    text: 'signin_with', shape: 'pill', width: 300, locale: 'th',
+  });
+}
+
+// ถอดรหัส payload ของ JWT (id_token) — ฝั่ง client พอสำหรับงานนี้
+function decodeJwt(token) {
+  try {
+    const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(atob(b).split('').map(c =>
+      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+
+function handleGoogleCredential(resp) {
+  const data = resp && resp.credential ? decodeJwt(resp.credential) : null;
+  if (!data || !data.email) { showToast('❌ เข้าสู่ระบบ Google ไม่สำเร็จ'); return; }
+
+  const email = String(data.email).toLowerCase();
+  if (ALLOWED_EMAIL_DOMAIN && !email.endsWith('@' + ALLOWED_EMAIL_DOMAIN)) {
+    showToast('❌ ใช้ได้เฉพาะอีเมล @' + ALLOWED_EMAIL_DOMAIN + ' เท่านั้น');
+    if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+    return;
+  }
+
+  S.googleEmail = email;
+  const gname = (data.name || '').trim();
+  const nameInput = document.getElementById('iname');
+  if (nameInput && gname) nameInput.value = gname;
+  showGmailChip(gname || email, email);
+
+  // โฟกัสช่องรหัสนักศึกษาให้กรอกต่อทันที
+  const idInput = document.getElementById('iid');
+  if (idInput) idInput.focus();
+}
+
+function showGmailChip(name, email) {
+  const slot = document.getElementById('gmail-chip-slot');
+  const wrap = document.getElementById('gbtn-wrap');
+  if (wrap) wrap.style.display = 'none';
+  if (!slot) return;
+  slot.innerHTML = `
+    <div class="gmail-chip">
+      <span class="gmail-ico">✅</span>
+      <div class="gmail-meta">
+        <div class="gmail-name">${escapeHtml(name)}</div>
+        <div class="gmail-mail">${escapeHtml(email)}</div>
+      </div>
+      <span class="gmail-x" onclick="clearGoogle()" title="เปลี่ยนบัญชี">✕</span>
+    </div>`;
+}
+
+function clearGoogle() {
+  S.googleEmail = null;
+  const slot = document.getElementById('gmail-chip-slot'); if (slot) slot.innerHTML = '';
+  const wrap = document.getElementById('gbtn-wrap'); if (wrap) wrap.style.display = '';
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function doLogin() {
+  const name  = document.getElementById('iname').value.trim();
+  const idIn  = document.getElementById('iid').value.trim();
+  if (!idIn)  { showToast('กรุณากรอกรหัสนักศึกษา'); return; }
+
+  // ── โหมดแอดมิน: พิมพ์รหัสแอดมินในช่องรหัส → เข้าหน้าภาพรวม (ไม่ต้องกรอกชื่อ) ──
+  if (idIn.replace(/\D/g, '') === ADMIN_ID) {
+    S.user = { name: name || 'แอดมิน', id: ADMIN_ID, av: '🛠️', isAdmin: true };
+    saveState();
+    render();
+    return;
+  }
+
+  // ── โหมดพรีวิว: เล่นได้เหมือนน้อง แต่ไม่บันทึกขึ้น backend ──
+  if (idIn.replace(/\D/g, '') === PREVIEW_ID) {
+    S.user = { name: name || 'พรีวิว', id: PREVIEW_ID,
+               av: AVATARS[Math.floor(Math.random() * AVATARS.length)], isPreview: true };
+    saveState();
+    if (S._pendingBooth) { S.booth = S._pendingBooth; S.fromScan = S._pendingBooth; delete S._pendingBooth; }
+    render();
+    showToast('👀 โหมดพรีวิว — ข้อมูลจะไม่ถูกบันทึก');
+    return;
+  }
+
+  if (!name)  { showToast('กรุณากรอกชื่อ-นามสกุล'); return; }
+  const id = lookupStudentId(idIn);
+  if (!id)    { showToast('❌ ไม่พบรหัสนี้ในรายชื่อผู้มีสิทธิ์เข้าร่วม'); return; }
+  S.user = { name, id, av: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+             email: S.googleEmail || '' };
+  saveState();
+  if (S._pendingBooth) { S.booth = S._pendingBooth; S.fromScan = S._pendingBooth; delete S._pendingBooth; }
+  render();
+  // กู้คืนแต้มจริงจากเซิร์ฟเวอร์ (กันแต้มหายเมื่อเปลี่ยนเครื่อง/ล้างเบราว์เซอร์)
+  apiSaveProfile().then(res => {
+    if (res && res.ok) {
+      S.pts = res.earned || 0;
+      S.redeemed = res.redeemed || 0;
+      if (res.done) Object.keys(res.done).forEach(k => S.done.add(parseInt(k)));
+      saveState();
+      render();
+    }
+  });
+}
+
+// =========================================================
+//  ADMIN — หน้าภาพรวม (เข้าด้วยรหัสแอดมิน)
+// =========================================================
+
+function adminHTML() {
+  return `
+  <div id="view-admin">
+    <div class="app-header">
+      <div class="header-top">
+        <div style="min-width:0;flex:1">
+          <div class="header-greeting">🛠️ โหมดแอดมิน</div>
+          <div class="header-name">ภาพรวมงาน</div>
+        </div>
+        <div onclick="refreshAdmin()" title="รีเฟรช"
+             style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);
+                    display:flex;align-items:center;justify-content:center;cursor:pointer;
+                    font-size:16px;flex-shrink:0;">🔄</div>
+        <div onclick="doLogout()" title="ออกจากระบบ"
+             style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);
+                    display:flex;align-items:center;justify-content:center;cursor:pointer;
+                    font-size:16px;margin-left:8px;flex-shrink:0;">🚪</div>
+      </div>
+    </div>
+    <div class="tab-content active" style="padding:16px 16px 60px;">
+      <div id="admin-body">
+        <div style="text-align:center;color:var(--text-light);padding:40px 0;">⏳ กำลังโหลดข้อมูล...</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindAdmin() { refreshAdmin(); }
+
+function refreshAdmin() {
+  const body = document.getElementById('admin-body');
+  if (!API_URL) {
+    if (body) body.innerHTML = '<div class="scan-error">ยังไม่ได้ตั้งค่า API_URL — ดูข้อมูลภาพรวมไม่ได้</div>';
+    return;
+  }
+  if (body) body.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:40px 0;">⏳ กำลังโหลดข้อมูล...</div>';
+  // ดึง 2 อย่าง: สรุปยอด + รายชื่อคนที่เข้าร่วม
+  apiGet('summary', sum => {
+    apiGet('leaderboard', list => {
+      renderAdmin(sum, Array.isArray(list) ? list : []);
+    });
+  });
+}
+
+function renderAdmin(sum, list) {
+  const body = document.getElementById('admin-body');
+  if (!body) return;
+  if (!sum || sum.error) {
+    body.innerHTML = '<div class="scan-error">โหลดข้อมูลไม่สำเร็จ ลองกดรีเฟรช 🔄 อีกครั้ง</div>';
+    return;
+  }
+
+  const stat = (label, val, color) => `
+    <div class="admin-stat">
+      <div class="admin-stat-num" style="color:${color}">${val}</div>
+      <div class="admin-stat-lbl">${label}</div>
+    </div>`;
+
+  const stats = `
+    <div class="admin-grid">
+      ${stat('เข้าร่วมแล้ว', sum.joined + '/' + sum.totalStudents, 'var(--primary)')}
+      ${stat('ยังไม่เข้าร่วม', sum.notJoined, 'var(--text-light)')}
+      ${stat('แต้มแจกรวม', sum.totalEarned, 'var(--accent)')}
+      ${stat('แต้มที่ถูกแลก', sum.totalRedeemed, 'var(--success)')}
+      ${stat('จำนวนครั้งแลกของ', sum.totalRedemptions, 'var(--danger)')}
+    </div>`;
+
+  // ของรางวัลที่ถูกแลกไป
+  const br = sum.byReward || {};
+  const brKeys = Object.keys(br);
+  const rewardsBox = brKeys.length ? `
+    <div class="section-title" style="margin-top:18px;">🎁 ของรางวัลที่แลกไปแล้ว</div>
+    ${brKeys.map(k => `
+      <div class="admin-row">
+        <span>${k}</span>
+        <strong>${br[k]} ชิ้น</strong>
+      </div>`).join('')}` :
+    `<div class="section-title" style="margin-top:18px;">🎁 ของรางวัลที่แลกไปแล้ว</div>
+     <div style="color:var(--text-light);font-size:13px;">ยังไม่มีการแลกของรางวัล</div>`;
+
+  // รายชื่อผู้เข้าร่วม (เรียงตามแต้มที่ได้รับ)
+  const sorted = [...list].sort((a, b) => (b.earned || 0) - (a.earned || 0));
+  const peopleBox = sorted.length ? `
+    <div class="section-title" style="margin-top:18px;">👥 ผู้เข้าร่วม (${sorted.length} คน)</div>
+    ${sorted.map((u, i) => `
+      <div class="admin-person">
+        <div class="admin-person-rank">${i + 1}</div>
+        <div class="admin-person-info">
+          <div class="admin-person-name">${u.av || '🌟'} ${u.name || '-'}</div>
+          <div class="admin-person-id">${u.id || ''}</div>
+        </div>
+        <div class="admin-person-pts">
+          <span title="ได้รับ">⭐${u.earned || 0}</span>
+          <span title="แลกไป" style="color:var(--success)">🎁${u.redeemed || 0}</span>
+          <span title="คงเหลือ" style="color:var(--text-light)">เหลือ ${u.remaining || 0}</span>
+        </div>
+      </div>`).join('')}` :
+    `<div class="section-title" style="margin-top:18px;">👥 ผู้เข้าร่วม</div>
+     <div style="color:var(--text-light);font-size:13px;">ยังไม่มีใครเข้าร่วม</div>`;
+
+  body.innerHTML = stats + rewardsBox + peopleBox;
+}
+
+// =========================================================
+//  MAIN APP
+// =========================================================
+
+function mainHTML() {
+  const visited = S.done.size;
+  const total   = BOOTHS.length;
+  const pct     = Math.round(visited / total * 100);
+
+  // Filtered booths
+  const list = S.filter === 'all' ? BOOTHS : BOOTHS.filter(b => b.type === +S.filter);
+
+  // Completion banner
+  const allDone = visited === total;
+  const banner = allDone ? `
+    <div class="completion-banner anim">
+      🏆 ยอดเยี่ยม! คุณเยี่ยมชมครบทุกบูธแล้ว! เก็บแต้มรวม ${S.pts} แต้ม
+    </div>` : '';
+
+  // Booth cards
+  const cards = list.map(b => {
+    const isDone = S.done.has(b.id);
+    const typeLabel = b.type === 1 ? '⚡ สแกนได้เลย' : b.type === 2 ? '❓ ตอบคำถาม' : '🎮 มินิเกม';
+    return `
+    <div class="booth-card ${isDone ? 'visited' : ''} anim" onclick="openBooth(${b.id})">
+      <div class="booth-card-top-bar" style="background:${b.color}"></div>
+      <span class="booth-icon">${b.icon}</span>
+      <div class="booth-name">${b.name}</div>
+      <div class="booth-footer">
+        <span class="booth-type-badge type-${b.type}">${typeLabel}</span>
+        <span class="booth-pts">+${b.pts}⭐</span>
+      </div>
+      ${isDone ? '<div class="done-check">✓</div>' : ''}
+    </div>`;
+  }).join('');
+
+
+  return `
+  <div id="view-main">
+    <div class="app-header">
+      <div class="header-top">
+        <div style="min-width:0;flex:1">
+          <div class="header-greeting">สวัสดี 👋</div>
+          <div class="header-name">${S.user.name}</div>
+        </div>
+        <div class="points-badge">
+          <div class="points-num">⭐ ${pointsLeft()}</div>
+          <div class="points-label">แต้มที่ใช้ได้</div>
+        </div>
+        <div onclick="doLogout()" title="ออกจากระบบ"
+             style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.18);
+                    display:flex;align-items:center;justify-content:center;cursor:pointer;
+                    font-size:16px;margin-left:8px;flex-shrink:0;">🚪</div>
+      </div>
+      <div class="progress-area">
+        <div class="progress-text">
+          <span>เยี่ยมชมแล้ว ${visited}/${total} บูธ</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="pbar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    ${S.user.isPreview ? '<div class="preview-bar">👀 โหมดพรีวิว — ข้อมูลจะไม่ถูกบันทึกขึ้นระบบ</div>' : ''}
+
+    <div class="tab-nav">
+      <button class="tab-btn ${S.tab === 'booths' ? 'active' : ''}" onclick="switchTab('booths')">🗺️ บูธ</button>
+      <button class="tab-btn ${S.tab === 'rewards' ? 'active' : ''}" onclick="switchTab('rewards')">🎁 แลกของ</button>
+      <button class="tab-btn ${S.tab === 'rank' ? 'active' : ''}" onclick="switchTab('rank')">🏆 อันดับ</button>
+    </div>
+
+    <div class="tab-content ${S.tab === 'booths' ? 'active' : ''}" id="tab-booths">
+      ${banner}
+      <div class="section-title">เลือกบูธที่อยากเยี่ยมชม</div>
+      <div class="filter-row">
+        <button class="filter-chip ${S.filter==='all'?'active':''}" onclick="setFilter('all')">ทั้งหมด (${total})</button>
+        <button class="filter-chip ${S.filter==='1'  ?'active':''}" onclick="setFilter('1')">⚡ สแกนง่าย (5)</button>
+        <button class="filter-chip ${S.filter==='2'  ?'active':''}" onclick="setFilter('2')">❓ ตอบคำถาม (7)</button>
+        <button class="filter-chip ${S.filter==='3'  ?'active':''}" onclick="setFilter('3')">🎮 มินิเกม (3)</button>
+      </div>
+      <div class="booth-grid">${cards}</div>
+    </div>
+
+    <div class="tab-content ${S.tab === 'rewards' ? 'active' : ''}" id="tab-rewards">
+      <div class="rewards-balance">
+        <div class="rewards-balance-lbl">แต้มที่ใช้แลกได้ตอนนี้</div>
+        <div class="rewards-balance-num">⭐ ${pointsLeft()} <span>แต้ม</span></div>
+        <div class="rewards-balance-sub">ได้รับสะสม ${S.pts} • แลกไปแล้ว ${S.redeemed} แต้ม</div>
+      </div>
+      <div class="section-title">เลือกของรางวัลที่อยากแลก</div>
+      <div id="rewards-list">${buildRewardsHtml()}</div>
+    </div>
+
+    <div class="tab-content ${S.tab === 'rank' ? 'active' : ''}" id="tab-rank">
+      <div class="rank-head">
+        <div class="section-title" style="margin-bottom:0;">🏆 อันดับแต้มสะสม</div>
+        <div class="rank-refresh" onclick="loadLeaderboard(true)" title="รีเฟรช">🔄</div>
+      </div>
+      <div id="rank-list">
+        <div style="text-align:center;color:var(--text-light);padding:30px 0;">⏳ กำลังโหลดอันดับ...</div>
+      </div>
+    </div>
+    <div id="modal-root-main"></div>
+  </div>`;
+}
+
+// ───── รายการของรางวัล ─────
+function buildRewardsHtml() {
+  const left = pointsLeft();
+  return REWARDS.map(r => {
+    const count   = S.redemptions.filter(x => x.id === r.id).length;
+    const canAfford = left >= r.cost;
+    const badge = count > 0
+      ? `<span class="reward-count">แลกแล้ว ${count} ครั้ง</span>` : '';
+    const btn = canAfford
+      ? `<button class="reward-btn" onclick="openRedeemModal('${r.id}')">แลก</button>`
+      : `<button class="reward-btn disabled" disabled>ขาดอีก ${r.cost - left} แต้ม</button>`;
+    return `
+    <div class="reward-card anim ${canAfford ? '' : 'cant'}">
+      <div class="reward-ic">${r.icon}</div>
+      <div class="reward-mid">
+        <div class="reward-name">${r.name} ${badge}</div>
+        <div class="reward-desc">${r.desc}</div>
+        <div class="reward-cost">⭐ ${r.cost} แต้ม</div>
+      </div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+// ───── เปิด modal ให้สตาฟกด PIN ยืนยันการแลก ─────
+function openRedeemModal(rewardId) {
+  const r = REWARDS.find(x => x.id === rewardId);
+  if (!r) return;
+  if (pointsLeft() < r.cost) { showToast('แต้มไม่พอแลกของชิ้นนี้'); return; }
+  const mr = document.getElementById('modal-root-main');
+  if (!mr) return;
+  mr.innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)closeRedeemModal()">
+    <div class="modal-card">
+      <div class="modal-emoji">${r.icon}</div>
+      <div class="modal-title">${r.name}</div>
+      <div class="modal-sub">ใช้ <strong>${r.cost} แต้ม</strong> • เหลือหลังแลก ${pointsLeft() - r.cost} แต้ม</div>
+      <div class="staff-box">
+        <div class="staff-label">🔒 ให้สตาฟกรอกรหัสเพื่อยืนยันการแลก</div>
+        <input id="staff-pin" class="input-field" type="tel" inputmode="numeric"
+               placeholder="รหัสสตาฟ" autocomplete="off" style="text-align:center;letter-spacing:4px;font-size:20px;">
+        <div id="staff-err" class="staff-err"></div>
+      </div>
+      <button class="btn-primary" onclick="confirmRedeem('${r.id}')">✅ ยืนยันการแลก</button>
+      <button class="btn-ghost" onclick="closeRedeemModal()" style="margin-top:10px;">ยกเลิก</button>
+    </div>
+  </div>`;
+  setTimeout(() => { const i = document.getElementById('staff-pin'); if (i) i.focus(); }, 100);
+}
+
+function closeRedeemModal() {
+  const mr = document.getElementById('modal-root-main');
+  if (mr) mr.innerHTML = '';
+}
+
+// ───── สตาฟยืนยัน → ส่ง PIN ไปตรวจที่เซิร์ฟเวอร์ + เซิร์ฟเวอร์หักแต้มเอง ─────
+async function confirmRedeem(rewardId) {
+  const r = REWARDS.find(x => x.id === rewardId);
+  if (!r) return;
+  const pin = ((document.getElementById('staff-pin') || {}).value || '').trim();
+  const err = document.getElementById('staff-err');
+  if (!pin) { if (err) err.textContent = '❌ กรุณากรอกรหัสสตาฟ'; return; }
+
+  // โหมดพรีวิว — จำลองการแลกในเครื่อง (ไม่ตรวจ PIN จริง ไม่บันทึกขึ้นระบบ)
+  if (S.user && S.user.isPreview) {
+    if (pointsLeft() < r.cost) { showToast('แต้มไม่พอแล้ว'); closeRedeemModal(); return; }
+    S.redeemed += r.cost;
+    S.redemptions.push({ id: r.id, name: r.name, cost: r.cost, time: Date.now() });
+    saveState();
+    showRedeemSuccess(r);
+    return;
+  }
+
+  if (err) err.textContent = '⏳ กำลังยืนยันกับระบบ...';
+  const res = await apiRedeem(r, pin);
+  if (!res || res.error) {
+    if (err) err.textContent = '❌ ' + ((res && res.error) || 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง');
+    return;
+  }
+  // สำเร็จ — ยึดยอดแต้มจากเซิร์ฟเวอร์เป็นหลัก
+  if (typeof res.earned === 'number')   S.pts = res.earned;
+  if (typeof res.redeemed === 'number') S.redeemed = res.redeemed;
+  S.redemptions.push({ id: r.id, name: r.name, cost: r.cost, time: Date.now() });
+  saveState();
+  showRedeemSuccess(r);
+}
+
+function showRedeemSuccess(r) {
+  const mr = document.getElementById('modal-root-main');
+  if (mr) mr.innerHTML = `
+  <div class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-emoji">🎉</div>
+      <div class="modal-title">แลกสำเร็จ!</div>
+      <div class="modal-sub">รับ "${r.name}" ได้ที่สตาฟเลย</div>
+      <div class="modal-pts">−${r.cost} ⭐</div>
+      <div class="modal-total">แต้มคงเหลือ: <strong>${pointsLeft()}</strong> แต้ม</div>
+      <button class="btn-primary" onclick="closeRedeemModal();render();">🎁 แลกต่อ / กลับ</button>
+    </div>
+  </div>`;
+}
+
+function bindMain() {
+  requestAnimationFrame(() => {
+    const pbar = document.getElementById('pbar');
+    if (pbar) pbar.style.width = Math.round(S.done.size / BOOTHS.length * 100) + '%';
+  });
+  if (S.tab === 'rank') loadLeaderboard();
+}
+
+function switchTab(tab) {
+  if (tab !== 'rank') stopRankAuto();
+  S.tab = tab;
+  render();
+}
+function setFilter(f)   { S.filter = f; render(); }
+function openBooth(id)  { stopRankAuto(); S.booth = id; S.game = null; render(); }
+
+// =========================================================
+//  LEADERBOARD (อันดับสด)
+// =========================================================
+let _rankTimer = null;
+
+function loadLeaderboard(force) {
+  const box = document.getElementById('rank-list');
+  if (!box) return;
+  if (!API_URL) { box.innerHTML = '<div class="scan-error">ยังไม่ได้ตั้งค่า API — ดูอันดับไม่ได้</div>'; return; }
+  if (force) box.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:30px 0;">⏳ กำลังโหลดอันดับ...</div>';
+  apiGet('leaderboard', list => renderLeaderboard(Array.isArray(list) ? list : []));
+  startRankAuto();
+}
+
+function renderLeaderboard(list) {
+  const box = document.getElementById('rank-list');
+  if (!box) return;
+  const sorted = [...list].sort((a, b) => (b.earned || 0) - (a.earned || 0));
+  if (!sorted.length) {
+    box.innerHTML = '<div style="color:var(--text-light);font-size:13px;text-align:center;padding:24px 0;">ยังไม่มีใครเก็บแต้ม — มาเป็นคนแรกกันเลย! 🚀</div>';
+    return;
+  }
+  const myId  = (S.user && S.user.id) ? String(S.user.id).replace(/\D/g, '') : '';
+  const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ('#' + (i + 1));
+  box.innerHTML = sorted.map((u, i) => {
+    const isMe = myId && String(u.id || '').replace(/\D/g, '') === myId;
+    return `
+    <div class="rank-row${isMe ? ' me' : ''} anim">
+      <div class="rank-pos">${medal(i)}</div>
+      <div class="rank-av">${escapeHtml(u.av || '🌟')}</div>
+      <div class="rank-name">${escapeHtml(u.name || '-')}${isMe ? ' <span class="rank-you">คุณ</span>' : ''}</div>
+      <div class="rank-pts">⭐ ${parseInt(u.earned) || 0}</div>
+    </div>`;
+  }).join('');
+}
+
+// รีเฟรชอันดับอัตโนมัติทุก 30 วิ เฉพาะตอนอยู่หน้าอันดับ
+function startRankAuto() {
+  stopRankAuto();
+  _rankTimer = setInterval(() => {
+    if (S.tab === 'rank' && S.booth === null && S.user && !S.user.isAdmin) {
+      apiGet('leaderboard', list => renderLeaderboard(Array.isArray(list) ? list : []));
+    } else {
+      stopRankAuto();
+    }
+  }, 30000);
+}
+function stopRankAuto() { if (_rankTimer) { clearInterval(_rankTimer); _rankTimer = null; } }
+
+// =========================================================
+//  BOOTH DETAIL
+// =========================================================
+
+function boothHTML(id) {
+  const b = BOOTHS.find(x => x.id === id);
+  const isDone = S.done.has(id);
+
+  const typeLabel = b.type === 1 ? '⚡ สแกนง่าย • 1 แต้ม'
+                  : b.type === 2 ? '❓ ตอบคำถาม • 2 แต้ม'
+                  : '🎮 มินิเกม • 3 แต้ม';
+
+  let activity = '';
+  if (isDone) {
+    activity = `
+    <div class="activity-card">
+      <div class="done-state">
+        <div class="done-state-icon">✅</div>
+        <div class="done-state-text">เยี่ยมชมบูธนี้แล้ว!</div>
+        <div class="done-state-sub">ได้รับ ${b.pts} แต้มไปแล้ว 🎉</div>
+      </div>
+    </div>`;
+  } else if (b.type === 1) {
+    activity = `
+    <div class="activity-card">
+      <div class="act-title">📱 สแกน QR Code</div>
+      <div class="act-sub">เปิดกล้องแล้วส่องไปที่ QR Code ที่ติดอยู่หน้าบูธ เพื่อรับ 1 แต้ม</div>
+      <div id="scan-area">
+        <div class="qr-box">📷</div>
+        <button class="btn-scan" onclick="startScanner(${id})">
+          <span style="font-size:20px">📲</span> เปิดกล้องสแกน QR
+        </button>
+      </div>
+    </div>`;
+  } else if (b.type === 2) {
+    const opts = b.opts.map((o, i) =>
+      `<button class="opt-btn" id="opt${i}" onclick="doAnswer(${id},${i})">${o}</button>`
+    ).join('');
+    activity = `
+    <div class="activity-card">
+      <div class="act-title">❓ ตอบคำถาม</div>
+      <div class="act-sub">ตอบถูกได้ 2 แต้ม / ตอบผิดได้ 1 แต้มจากการเยี่ยมชม</div>
+      <div class="question-text">${b.q}</div>
+      <div class="options-grid" id="opts">${opts}</div>
+      <div class="q-result" id="qres"></div>
+    </div>`;
+  } else {
+    activity = memGameHTML();
+  }
+
+  return `
+  <div id="view-booth">
+    <div class="booth-detail-header">
+      <div class="back-btn" onclick="closeBooth()">←</div>
+      <div class="detail-title">${b.name}</div>
+    </div>
+    <div class="detail-body">
+      <div class="booth-hero-card">
+        ${clubImg(id)
+          ? `<img class="hero-img" src="${clubImg(id)}" alt="${b.name}" onerror="this.style.display='none'">`
+          : `<div class="hero-icon">${b.icon}</div>`}
+        <div class="hero-name">${b.name}</div>
+        <div class="hero-desc">${b.desc}</div>
+        <div class="reward-pill">⭐ รับ ${b.pts} แต้ม &nbsp;•&nbsp; ${typeLabel}</div>
+        ${clubSignup(id)
+          ? `<a class="btn-signup" href="${clubSignup(id)}" target="_blank" rel="noopener">📝 สมัคร / ดูรายละเอียดชมรม</a>`
+          : ''}
+      </div>
+      ${activity}
+    </div>
+    <div id="modal-root"></div>
+  </div>`;
+}
+
+function bindBooth(id) {
+  const b = BOOTHS.find(x => x.id === id);
+  if (b.type === 3 && !S.done.has(id)) initGame(id);
+
+  // บูธ Type 1 ที่เข้ามาผ่านการสแกน QR จริง (?booth=N&t=...) → ได้แต้มทันที ไม่ต้องสแกนซ้ำ
+  if (b.type === 1 && !S.done.has(id) && S.fromScan === id) {
+    S.fromScan = null;
+    setTimeout(() => { if (S.booth === id && !S.done.has(id)) award(id, false, S.tokens[id]); }, 600);
+  }
+}
+
+function closeBooth() { stopScanner(); S.booth = null; S.game = null; render(); }
+
+// ───── กล้องสแกน QR จริง (ใช้ตอนเปิดบูธ Type 1 จากในแอป) ─────
+function startScanner(id) {
+  const area = document.getElementById('scan-area');
+  if (!area) return;
+
+  if (typeof Html5Qrcode === 'undefined') {
+    area.innerHTML = `<div class="scan-error">⚠️ โหลดตัวสแกนไม่สำเร็จ (อาจไม่มีเน็ต)<br>ลองรีเฟรชหน้าใหม่อีกครั้ง</div>
+      <button class="btn-scan" onclick="startScanner(${id})">🔄 ลองอีกครั้ง</button>`;
+    return;
+  }
+
+  area.innerHTML = `
+    <div id="reader"></div>
+    <div class="scan-hint">📷 ส่องกล้องไปที่ QR Code ของบูธนี้</div>
+    <button class="btn-ghost" onclick="stopScanner(true)">ยกเลิก</button>`;
+
+  _scanner = new Html5Qrcode('reader');
+  _scanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 220, height: 220 } },
+    (decodedText) => onScanSuccess(id, decodedText),
+    () => {} // ละเว้น error ระหว่างหา QR
+  ).catch(err => {
+    area.innerHTML = `
+      <div class="scan-error">
+        ⚠️ เปิดกล้องไม่ได้: ${err && err.name ? err.name : 'ไม่ทราบสาเหตุ'}<br>
+        กรุณาอนุญาตให้เว็บเข้าถึงกล้อง แล้วลองใหม่ (ต้องเปิดผ่าน https เท่านั้น)
+      </div>
+      <button class="btn-scan" onclick="startScanner(${id})">🔄 ลองเปิดกล้องอีกครั้ง</button>`;
+  });
+}
+
+function onScanSuccess(boothId, decodedText) {
+  // ดึงค่า booth + token (t) จาก URL ที่สแกนได้ แล้วเช็คว่าตรงกับบูธนี้ไหม
+  let scanned = null, token = '';
+  try {
+    const m = String(decodedText).match(/[?&]booth=(\d+)/);
+    if (m) scanned = parseInt(m[1]);
+    const mt = String(decodedText).match(/[?&]t=([^&\s]+)/);
+    if (mt) token = decodeURIComponent(mt[1]);
+  } catch (e) {}
+
+  if (scanned === boothId) {
+    if (token) S.tokens[boothId] = token;   // เก็บ token ไว้ส่งยืนยันกับเซิร์ฟเวอร์
+    stopScanner();
+    award(boothId, false, token);
+  } else if (scanned) {
+    showToast('❌ QR นี้เป็นของบูธอื่น (บูธ ' + scanned + ')');
+  } else {
+    showToast('❌ QR ไม่ถูกต้อง ลองส่องใหม่อีกครั้ง');
+  }
+}
+
+function stopScanner(restoreUi) {
+  if (_scanner) {
+    const s = _scanner;
+    _scanner = null;
+    s.stop().then(() => s.clear()).catch(() => {});
+  }
+  if (restoreUi && S.booth !== null) render();
+}
+
+function doAnswer(id, i) {
+  const b = BOOTHS.find(x => x.id === id);
+  document.querySelectorAll('.opt-btn').forEach(el => el.disabled = true);
+  const res = document.getElementById('qres');
+  if (i === b.ans) {
+    document.getElementById('opt' + i).classList.add('correct');
+    res.textContent = '🎉 ถูกต้อง! ยอดเยี่ยมมาก!';
+    res.style.color = 'var(--success)';
+    setTimeout(() => award(id, true, S.tokens[id]), 1100);
+  } else {
+    document.getElementById('opt' + i).classList.add('wrong');
+    document.getElementById('opt' + b.ans).classList.add('correct');
+    res.textContent = '😅 ไม่ถูกต้อง แต่ได้ 1 แต้มจากการเยี่ยมชม!';
+    res.style.color = 'var(--danger)';
+    setTimeout(() => award(id, false, S.tokens[id]), 1400);
+  }
+}
+
+// =========================================================
+//  MEMORY GAME
+// =========================================================
+
+function memGameHTML() {
+  return `
+  <div class="activity-card">
+    <div class="act-title">🃏 เกมจับคู่การ์ด</div>
+    <div class="act-sub">จับคู่ให้ครบ 6 คู่ รับ 3 แต้ม!</div>
+    <div class="game-stats">
+      <span>พลิกแล้ว: <strong id="gflip">0</strong> ครั้ง</span>
+      <span>จับคู่ได้: <strong id="gmatch">0</strong>/6</span>
+    </div>
+    <div class="memory-grid" id="mgrid"></div>
+    <div class="game-msg" id="gmsg"></div>
+  </div>`;
+}
+
+function initGame(boothId) {
+  const emojis = GAME_EMOJIS.slice(0, 6);
+  const cards = [...emojis, ...emojis]
+    .sort(() => Math.random() - 0.5)
+    .map((e, i) => ({ idx: i, emoji: e, flipped: false, matched: false }));
+  S.game = { cards, revealed: [], matches: 0, flips: 0, locked: false, boothId };
+  drawGame();
+}
+
+function drawGame() {
+  const g = document.getElementById('mgrid');
+  if (!g) return;
+  g.innerHTML = S.game.cards.map((c, i) => `
+    <div class="mc ${c.flipped || c.matched ? 'flipped' : ''} ${c.matched ? 'matched' : ''}"
+         onclick="flipCard(${i})">
+      <div class="mc-face mc-back">❓</div>
+      <div class="mc-face mc-front">${c.emoji}</div>
+    </div>`).join('');
+}
+
+function flipCard(i) {
+  const g = S.game;
+  if (!g || g.locked) return;
+  const c = g.cards[i];
+  if (c.flipped || c.matched) return;
+  if (g.revealed.length >= 2) return;
+
+  c.flipped = true;
+  g.revealed.push(i);
+  g.flips++;
+  document.getElementById('gflip').textContent = g.flips;
+  drawGame();
+
+  if (g.revealed.length === 2) {
+    g.locked = true;
+    const [a, b] = g.revealed;
+    if (g.cards[a].emoji === g.cards[b].emoji) {
+      g.cards[a].matched = g.cards[b].matched = true;
+      g.matches++;
+      g.revealed = [];
+      g.locked = false;
+      document.getElementById('gmatch').textContent = g.matches;
+      drawGame();
+      if (g.matches === 6) {
+        document.getElementById('gmsg').textContent = '🎉 จับคู่ครบแล้ว! เก่งมาก!';
+        setTimeout(() => award(g.boothId, false, S.tokens[g.boothId]), 700);
+      }
+    } else {
+      setTimeout(() => {
+        g.cards[a].flipped = g.cards[b].flipped = false;
+        g.revealed = [];
+        g.locked = false;
+        drawGame();
+      }, 800);
+    }
+  }
+}
+
+// =========================================================
+//  AWARD & MODAL
+// =========================================================
+
+// award — ส่งการเยี่ยมบูธไปให้ "เซิร์ฟเวอร์เป็นคนให้แต้ม" (กันปลอมแต้ม)
+//  correct = ตอบถูกไหม (บูธคำถาม), token = ค่า t จาก QR (บูธสแกนบังคับต้องมี)
+async function award(id, correct, token) {
+  stopScanner();
+  showSavingModal();
+  const res = await apiVisit(id, correct, token);
+
+  // โหมดพรีวิว / ยังไม่ตั้งค่า API → คำนวณแต้มในเครื่องอย่างเดียว
+  if (res && res._local) {
+    const pts = boothPointsLocal(id, correct);
+    S.done.add(id); S.pts += pts; saveState();
+    showAwardModal(pts);
+    return;
+  }
+  // ล้มเหลว (เช่น QR ไม่ถูกต้อง / เน็ตหลุด) → แจ้งเตือนแล้วกลับไปให้ลองใหม่
+  if (!res || res.error) {
+    showToast(res && res.error ? '❌ ' + res.error : '⚠️ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');
+    render();
+    return;
+  }
+  // สำเร็จ — ยึดแต้มจริงจากเซิร์ฟเวอร์
+  S.pts = res.earned;
+  S.redeemed = res.redeemed;
+  S.done.add(id);
+  if (res.done) Object.keys(res.done).forEach(k => S.done.add(parseInt(k)));
+  saveState();
+
+  if (res.already && (!res.awarded)) {
+    showToast('✅ บูธนี้เก็บแต้มไปแล้ว');
+    render();
+    return;
+  }
+  showAwardModal(typeof res.awarded === 'number' ? res.awarded : boothPointsLocal(id, correct));
+}
+
+function showSavingModal() {
+  const mr = document.getElementById('modal-root');
+  if (!mr) return;
+  mr.innerHTML = `
+  <div class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-emoji">⏳</div>
+      <div class="modal-title">กำลังบันทึกแต้ม...</div>
+      <div class="modal-sub">รอสักครู่นะ</div>
+    </div>
+  </div>`;
+}
+
+function showAwardModal(pts) {
+  const mr = document.getElementById('modal-root');
+  if (!mr) return;
+  mr.innerHTML = `
+  <div class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-emoji">🎉</div>
+      <div class="modal-title">ยอดเยี่ยม!</div>
+      <div class="modal-sub">คุณได้รับแต้มจากบูธนี้แล้ว</div>
+      <div class="modal-pts">+${pts} ⭐</div>
+      <div class="modal-total">แต้มที่ใช้แลกได้ตอนนี้: <strong>${pointsLeft()}</strong> แต้ม</div>
+      <button class="btn-primary" onclick="afterAward()">🗺️ กลับไปล่าต่อ!</button>
+    </div>
+  </div>`;
+}
+
+function afterAward() { S.booth = null; S.game = null; render(); }
+
+// =========================================================
+//  UTILS
+// =========================================================
+
+// กัน HTML/สคริปต์แปลกปลอมจากชื่อที่น้องกรอก (แสดงให้คนอื่นเห็นในหน้าอันดับ)
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showToast(msg) {
+  const old = document.getElementById('toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.id = 'toast';
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+function doLogout() {
+  const msg = (S.user && S.user.isAdmin)   ? 'ออกจากโหมดแอดมิน?'
+            : (S.user && S.user.isPreview) ? 'ออกจากโหมดพรีวิว?'
+            : 'ออกจากระบบ? แต้มของคุณจะถูกลบออก';
+  if (!confirm(msg)) return;
+  stopRankAuto();
+  clearState(); render();
+}
+
+// =========================================================
+//  INIT
+// =========================================================
+
+loadState();
+// อ่าน ?booth=X&t=TOKEN จาก URL (เมื่อสแกน QR Code ที่บูธด้วยกล้องมือถือ)
+const _urlParams = new URLSearchParams(window.location.search);
+const _urlBooth  = parseInt(_urlParams.get('booth'));
+const _urlToken  = _urlParams.get('t') || '';
+if (_urlBooth >= 1 && _urlBooth <= 15) {
+  if (_urlToken) S.tokens[_urlBooth] = _urlToken;   // เก็บ token ไว้ส่งยืนยันกับเซิร์ฟเวอร์
+  if (S.user) { S.booth = _urlBooth; S.fromScan = _urlBooth; }
+  else        { S._pendingBooth = _urlBooth; }
+}
+render();
+</script>
+</body>
+</html>
