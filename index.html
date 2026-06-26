@@ -6,7 +6,6 @@
   <title>🔍 ล่า QR Code — เปิดโลกกิจกรรม</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- 🔥 Firebase (backend ใหม่ — แทน Google Apps Script) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -130,28 +129,6 @@
       color: var(--text-light);
       margin-top: 14px;
     }
-
-    /* ===== Google Sign-In ===== */
-    #gbtn-wrap { display: flex; justify-content: center; margin-bottom: 14px; min-height: 44px; }
-    .login-divider {
-      display: flex; align-items: center; gap: 10px;
-      color: var(--text-light); font-size: 12px; margin: 4px 0 18px;
-    }
-    .login-divider::before, .login-divider::after {
-      content: ''; flex: 1; height: 1px; background: #E5E7EB;
-    }
-    .gmail-chip {
-      display: flex; align-items: center; gap: 8px;
-      background: #F3EEFE; border: 1px solid #E3D8FB; border-radius: 12px;
-      padding: 9px 12px; margin-bottom: 16px; text-align: left;
-    }
-    .gmail-chip .gmail-ico { font-size: 18px; }
-    .gmail-chip .gmail-meta { min-width: 0; flex: 1; }
-    .gmail-chip .gmail-name { font-size: 13px; font-weight: 700; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .gmail-chip .gmail-mail { font-size: 11px; color: var(--text-light);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .gmail-chip .gmail-x { font-size: 13px; color: var(--text-light); cursor: pointer; padding: 2px 4px; }
 
     /* ===== HEADER ===== */
     .app-header {
@@ -784,12 +761,12 @@
 //     ⚠️ ต้องเป็นโปรเจกต์เดียวกับที่รัน seed.html ตอนตั้งค่า
 // =========================================================
 const firebaseConfig = {
-  apiKey:            'PASTE_API_KEY',
-  authDomain:        'YOUR-PROJECT.firebaseapp.com',
-  projectId:         'YOUR-PROJECT',
-  storageBucket:     'YOUR-PROJECT.appspot.com',
-  messagingSenderId: 'PASTE_SENDER_ID',
-  appId:             'PASTE_APP_ID',
+  apiKey:            'AIzaSyB2wTW9AOgIOGD04t9mKu_eipZkHTDIRDg',
+  authDomain:        'events-410f4.firebaseapp.com',
+  projectId:         'events-410f4',
+  storageBucket:     'events-410f4.firebasestorage.app',
+  messagingSenderId: '282524836423',
+  appId:             '1:282524836423:web:d3fde969c6a62d16a98762',
 };
 
 // ธงบอกว่า "ตั้งค่า backend แล้วหรือยัง" (ยังไม่ใส่ config = โหมดเล่นในเครื่องอย่างเดียว)
@@ -803,16 +780,6 @@ if (API_URL) {
     db = firebase.firestore();
   } catch (e) { console.error('Firebase init error:', e); }
 }
-
-// =========================================================
-//  🔑 Google Sign-In — วาง OAuth Client ID ตรงนี้ (จาก Google Cloud Console)
-//     ตัวอย่าง: '1234567890-abcdefg.apps.googleusercontent.com'
-//     ⚠️ อย่าลืมใส่โดเมนเว็บ (เช่น https://xxx.netlify.app) ใน "Authorized JavaScript origins"
-// =========================================================
-const GOOGLE_CLIENT_ID = '282524836423-5cmgeln4hube6gtjikjreco7t8p7m424.apps.googleusercontent.com';
-
-// จำกัดเฉพาะอีเมลโดเมนนี้ (อีเมลนักศึกษา มข.) — ถ้าอยากรับทุกอีเมลให้ตั้งเป็น ''
-const ALLOWED_EMAIL_DOMAIN = 'kkumail.com';
 
 // 🔒 รหัสสตาฟ (PIN) ย้ายไปตรวจที่ฝั่งเซิร์ฟเวอร์แล้ว (backend-Code.gs → STAFF_PIN)
 //    จึงไม่เก็บไว้ในไฟล์นี้ เพื่อไม่ให้น้องเปิด View Source เห็นรหัส
@@ -1199,7 +1166,6 @@ async function _getSummary() {
 
 let S = {
   user: null,
-  googleEmail: null, // อีเมลจาก Google Sign-In (ถ้ามี)
   pts: 0,            // แต้มสะสมที่ได้รับทั้งหมด (จากบูธ)
   redeemed: 0,       // แต้มที่แลกของรางวัลไปแล้ว (รวม)
   redemptions: [],   // ประวัติการแลก [{id,name,cost,time}]
@@ -1247,11 +1213,6 @@ function loginHTML() {
       <div class="login-title">ล่า QR Code</div>
       <div class="login-subtitle">เปิดโลกกิจกรรม<br>ลงทะเบียนเพื่อเริ่มเก็บแต้มได้เลย!</div>
 
-      <!-- ปุ่มเข้าสู่ระบบด้วย Google (เฉพาะอีเมล @kkumail.com) -->
-      <div id="gbtn-wrap"></div>
-      <div id="gmail-chip-slot"></div>
-      <div class="login-divider">หรือกรอกเอง</div>
-
       <div class="input-group">
         <label class="input-label">ชื่อ-นามสกุล</label>
         <input id="iname" class="input-field" type="text" placeholder="เช่น เป็นหนึ่ง อยากเป็นหมอ" autocomplete="off">
@@ -1274,92 +1235,6 @@ function bindLogin() {
     if (e.key === 'Enter') doLogin();
   });
   document.getElementById('btn-login').onclick = doLogin;
-  initGoogleSignin();
-}
-
-// =========================================================
-//  Google Sign-In (GIS) — ดึงชื่อ + อีเมลอัตโนมัติ
-// =========================================================
-let _gsiTries = 0;
-function initGoogleSignin() {
-  const wrap = document.getElementById('gbtn-wrap');
-  if (!wrap) return;
-  // ยังไม่ได้วาง Client ID → ซ่อนปุ่ม ใช้กรอกเองได้ตามปกติ
-  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf('PASTE_YOUR') === 0) {
-    wrap.style.display = 'none';
-    const dv = document.querySelector('.login-divider'); if (dv) dv.style.display = 'none';
-    return;
-  }
-  // รอไลบรารี GIS โหลดเสร็จก่อน (โหลดแบบ async)
-  if (!(window.google && google.accounts && google.accounts.id)) {
-    if (_gsiTries++ < 40) return void setTimeout(initGoogleSignin, 150);
-    wrap.style.display = 'none'; return;
-  }
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogleCredential,
-    auto_select: false,
-    hd: ALLOWED_EMAIL_DOMAIN || undefined,
-  });
-  google.accounts.id.renderButton(wrap, {
-    type: 'standard', theme: 'outline', size: 'large',
-    text: 'signin_with', shape: 'pill', width: 300, locale: 'th',
-  });
-}
-
-// ถอดรหัส payload ของ JWT (id_token) — ฝั่ง client พอสำหรับงานนี้
-function decodeJwt(token) {
-  try {
-    const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(atob(b).split('').map(c =>
-      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(json);
-  } catch (e) { return null; }
-}
-
-function handleGoogleCredential(resp) {
-  const data = resp && resp.credential ? decodeJwt(resp.credential) : null;
-  if (!data || !data.email) { showToast('❌ เข้าสู่ระบบ Google ไม่สำเร็จ'); return; }
-
-  const email = String(data.email).toLowerCase();
-  if (ALLOWED_EMAIL_DOMAIN && !email.endsWith('@' + ALLOWED_EMAIL_DOMAIN)) {
-    showToast('❌ ใช้ได้เฉพาะอีเมล @' + ALLOWED_EMAIL_DOMAIN + ' เท่านั้น');
-    if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
-    return;
-  }
-
-  S.googleEmail = email;
-  const gname = (data.name || '').trim();
-  const nameInput = document.getElementById('iname');
-  if (nameInput && gname) nameInput.value = gname;
-  showGmailChip(gname || email, email);
-
-  // โฟกัสช่องรหัสนักศึกษาให้กรอกต่อทันที
-  const idInput = document.getElementById('iid');
-  if (idInput) idInput.focus();
-}
-
-function showGmailChip(name, email) {
-  const slot = document.getElementById('gmail-chip-slot');
-  const wrap = document.getElementById('gbtn-wrap');
-  if (wrap) wrap.style.display = 'none';
-  if (!slot) return;
-  slot.innerHTML = `
-    <div class="gmail-chip">
-      <span class="gmail-ico">✅</span>
-      <div class="gmail-meta">
-        <div class="gmail-name">${escapeHtml(name)}</div>
-        <div class="gmail-mail">${escapeHtml(email)}</div>
-      </div>
-      <span class="gmail-x" onclick="clearGoogle()" title="เปลี่ยนบัญชี">✕</span>
-    </div>`;
-}
-
-function clearGoogle() {
-  S.googleEmail = null;
-  const slot = document.getElementById('gmail-chip-slot'); if (slot) slot.innerHTML = '';
-  const wrap = document.getElementById('gbtn-wrap'); if (wrap) wrap.style.display = '';
-  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
 }
 
 function escapeHtml(s) {
@@ -1394,8 +1269,7 @@ function doLogin() {
   if (!name)  { showToast('กรุณากรอกชื่อ-นามสกุล'); return; }
   const id = lookupStudentId(idIn);
   if (!id)    { showToast('❌ ไม่พบรหัสนี้ในรายชื่อผู้มีสิทธิ์เข้าร่วม'); return; }
-  S.user = { name, id, av: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-             email: S.googleEmail || '' };
+  S.user = { name, id, av: AVATARS[Math.floor(Math.random() * AVATARS.length)] };
   saveState();
   if (S._pendingBooth) { S.booth = S._pendingBooth; S.fromScan = S._pendingBooth; delete S._pendingBooth; }
   render();
