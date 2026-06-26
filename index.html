@@ -7,6 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- 🔥 Firebase (backend ใหม่ — แทน Google Apps Script) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --primary: #6C3CE1;
@@ -776,9 +779,30 @@
 
 <script>
 // =========================================================
-//  CONFIG — ใส่ URL Google Apps Script หลัง deploy แล้ว
+//  🔥 CONFIG — Firebase backend (แทน Google Apps Script เดิม)
+//     เอาค่ามาจาก Firebase Console → Project settings → Web app (</>)
+//     ⚠️ ต้องเป็นโปรเจกต์เดียวกับที่รัน seed.html ตอนตั้งค่า
 // =========================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbxGoLNXNnMCyfwW1vKYPr57jSx5-jWsr_tN0Oun5uBqS4OrTzCUBXz9jcNuXbDirsm2/exec';
+const firebaseConfig = {
+  apiKey:            'PASTE_API_KEY',
+  authDomain:        'YOUR-PROJECT.firebaseapp.com',
+  projectId:         'YOUR-PROJECT',
+  storageBucket:     'YOUR-PROJECT.appspot.com',
+  messagingSenderId: 'PASTE_SENDER_ID',
+  appId:             'PASTE_APP_ID',
+};
+
+// ธงบอกว่า "ตั้งค่า backend แล้วหรือยัง" (ยังไม่ใส่ config = โหมดเล่นในเครื่องอย่างเดียว)
+const API_URL = firebaseConfig.projectId && firebaseConfig.projectId.indexOf('YOUR-') !== 0;
+
+// เริ่มต้น Firestore
+let db = null;
+if (API_URL) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.error('Firebase init error:', e); }
+}
 
 // =========================================================
 //  🔑 Google Sign-In — วาง OAuth Client ID ตรงนี้ (จาก Google Cloud Console)
@@ -1018,54 +1042,155 @@ function clearState() {
 function pointsLeft() { return Math.max(0, S.pts - S.redeemed); }
 
 // =========================================================
-//  API — Google Sheets backend
+//  API — Firebase Firestore backend
+//  (คงรูปแบบ return เดิมทุกฟังก์ชัน — ส่วนอื่นของแอปไม่ต้องแก้)
 // =========================================================
 
-// ลงทะเบียน/อัปเดตโปรไฟล์ตอนล็อกอิน (ส่งแค่ ชื่อ/avatar — ไม่ส่งแต้ม)
-// คืนค่าแต้มจริงจากเซิร์ฟเวอร์ เพื่อกู้คืนความคืบหน้า (เปลี่ยนเครื่อง/ล้างเบราว์เซอร์ก็ไม่หาย)
+// รหัสแบบเลขล้วน (ใช้เป็นชื่อเอกสารผู้เล่น) เช่น "693070001-1" → "6930700011"
+function _numId(id) { return String(id || '').replace(/\D/g, ''); }
+
+// แต้มของบูธตามประเภท (ต้องตรงกับกฎใน firestore.rules)
+function _boothPts(boothId, correct) {
+  boothId = parseInt(boothId) || 0;
+  if (boothId >= 1  && boothId <= 5)  return 1;
+  if (boothId >= 6  && boothId <= 12) return correct ? 2 : 1;
+  if (boothId >= 13 && boothId <= 15) return 3;
+  return 0;
+}
+
+// อ่าน "แต้มของจริง" จากสมุดบันทึก visits + ยอดแลกจาก redemptions
+async function _readState(numId) {
+  const vs = await db.collection('players').doc(numId).collection('visits').get();
+  const done = {}; let earned = 0;
+  vs.forEach(d => { const b = parseInt(d.id); const p = parseInt(d.data().pts) || 0; done[b] = p; earned += p; });
+  const rs = await db.collection('redemptions').where('pid', '==', numId).get();
+  let redeemed = 0; rs.forEach(d => redeemed += parseInt(d.data().cost) || 0);
+  return { done, earned, redeemed, remaining: Math.max(0, earned - redeemed), visited: Object.keys(done).length };
+}
+
+// เอกสารโปรไฟล์ + ยอดรวม (denormalized) ไว้โชว์ leaderboard/แอดมินเร็ว ๆ
+function _profileDoc(st) {
+  return {
+    id: S.user.id, name: S.user.name, av: S.user.av, email: S.user.email || '',
+    status: 'เข้าร่วมแล้ว', earned: st.earned, redeemed: st.redeemed,
+    remaining: st.remaining, visited: st.visited, updatedAt: Date.now(),
+  };
+}
+
+// ลงทะเบียน/อัปเดตโปรไฟล์ตอนล็อกอิน — คืนแต้มจริง เพื่อกู้คืนความคืบหน้า
 function apiSaveProfile() {
-  return new Promise(resolve => {
-    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve(null); return; }
-    const p = new URLSearchParams({
-      action: 'save', id: S.user.id, name: S.user.name, av: S.user.av,
-      email: S.user.email || '',
-    });
-    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  return new Promise(async resolve => {
+    if (!API_URL || !db || !S.user || S.user.isAdmin || S.user.isPreview) { resolve(null); return; }
+    try {
+      const numId = _numId(S.user.id);
+      const ref = db.collection('players').doc(numId);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        await ref.set({ id: S.user.id, name: S.user.name, av: S.user.av, email: S.user.email || '',
+                        status: 'เข้าร่วมแล้ว', earned: 0, redeemed: 0, remaining: 0, visited: 0, updatedAt: Date.now() });
+      }
+      const st = await _readState(numId);
+      await ref.set(_profileDoc(st), { merge: true });
+      resolve({ ok: true, id: S.user.id, ...st });
+    } catch (e) { console.error(e); resolve(null); }
   });
 }
 
-// บันทึกการเยี่ยมบูธ — เซิร์ฟเวอร์เป็นผู้ให้แต้ม (กันปลอมแต้ม) คืนแต้มจริงกลับมา
-//  correct = ตอบถูกไหม (เฉพาะบูธตอบคำถาม), token = ค่า t จาก QR (เฉพาะบูธสแกน)
+// บันทึกการเยี่ยมบูธ — กฎ Firestore เป็นผู้ตรวจ token/แต้ม + กันเก็บซ้ำ (visit สร้างครั้งเดียว)
 function apiVisit(boothId, correct, token) {
-  return new Promise(resolve => {
-    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
-    const p = new URLSearchParams({
-      action: 'visit', id: S.user.id, name: S.user.name, av: S.user.av,
-      booth: String(boothId), correct: correct ? '1' : '0', t: token || '',
-    });
-    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  return new Promise(async resolve => {
+    if (!API_URL || !db || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
+    try {
+      const numId = _numId(S.user.id);
+      const pref  = db.collection('players').doc(numId);
+      const vref  = pref.collection('visits').doc(String(boothId));
+      const b = parseInt(boothId) || 0;
+      let already = false, awarded = 0;
+
+      const vsnap = await vref.get();
+      if (vsnap.exists) {
+        already = true;
+      } else {
+        const data = { booth: b, pts: _boothPts(b, correct), time: Date.now() };
+        if (b >= 6 && b <= 12) data.correct = !!correct;     // บูธตอบคำถาม
+        if (b >= 1 && b <= 5)  data.token   = token || '';   // บูธสแกน (กฎตรวจ token)
+        await vref.set(data);
+        awarded = data.pts;
+      }
+      const st = await _readState(numId);
+      await pref.set(_profileDoc(st), { merge: true });
+      resolve({ ok: true, id: S.user.id, booth: b, awarded, already, ...st });
+    } catch (e) {
+      const denied = e && (e.code === 'permission-denied' || /permission/i.test(e.message || ''));
+      resolve({ error: denied ? 'QR ไม่ถูกต้อง — กรุณาสแกน QR ที่บูธนี้โดยตรง'
+                              : 'บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง' });
+    }
   });
 }
 
-// แลกของรางวัล — ส่ง PIN ไปตรวจที่เซิร์ฟเวอร์ + เซิร์ฟเวอร์เช็คแต้มคงเหลือเอง
+// แลกของรางวัล — กฎ Firestore ตรวจ PIN (PIN ไม่อยู่ในไฟล์นี้แล้ว) + เช็คแต้มคงเหลือก่อนส่ง
 function apiRedeem(reward, pin) {
-  return new Promise(resolve => {
-    if (!API_URL || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
-    const p = new URLSearchParams({
-      action: 'redeem', id: S.user.id, name: S.user.name,
-      reward: reward.name, cost: String(reward.cost), pin: pin || '',
-    });
-    fetch(API_URL + '?' + p).then(r => r.json()).then(resolve).catch(() => resolve(null));
+  return new Promise(async resolve => {
+    if (!API_URL || !db || !S.user || S.user.isAdmin || S.user.isPreview) { resolve({ _local: true }); return; }
+    try {
+      const numId = _numId(S.user.id);
+      const cost  = parseInt(reward.cost) || 0;
+      if (cost <= 0) { resolve({ error: 'ค่าแลกไม่ถูกต้อง' }); return; }
+
+      const st = await _readState(numId);
+      if (cost > st.remaining) {
+        resolve({ error: 'แต้มคงเหลือไม่พอ (เหลือ ' + st.remaining + ' ต้องใช้ ' + cost + ')', ...st });
+        return;
+      }
+      await db.collection('redemptions').add({
+        pid: numId, id: S.user.id, name: S.user.name || '',
+        reward: reward.name, cost: cost, pin: pin || '', time: Date.now(),
+      });
+      const st2 = await _readState(numId);
+      await db.collection('players').doc(numId)
+        .set({ redeemed: st2.redeemed, remaining: st2.remaining, updatedAt: Date.now() }, { merge: true });
+      resolve({ ok: true, id: S.user.id, reward: reward.name, cost, ...st2 });
+    } catch (e) {
+      const denied = e && (e.code === 'permission-denied' || /permission/i.test(e.message || ''));
+      resolve({ error: denied ? 'รหัสสตาฟไม่ถูกต้อง' : 'บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง' });
+    }
   });
 }
 
-// ดึงข้อมูลจาก backend (ใช้ในหน้าแอดมิน)
+// ดึงข้อมูลภาพรวม/อันดับ (ใช้ในหน้าแอดมินและหน้าอันดับ)
 function apiGet(action, cb) {
-  if (!API_URL) { cb(null); return; }
-  fetch(API_URL + '?action=' + action)
-    .then(r => r.json())
-    .then(d => cb(d))
-    .catch(() => cb(null));
+  if (!API_URL || !db) { cb(null); return; }
+  if (action === 'summary')     { _getSummary().then(cb).catch(() => cb(null)); return; }
+  if (action === 'leaderboard') { _getLeaderboard().then(cb).catch(() => cb(null)); return; }
+  cb(null);
+}
+
+async function _getLeaderboard() {
+  const ps = await db.collection('players').where('status', '==', 'เข้าร่วมแล้ว').get();
+  const list = [];
+  ps.forEach(d => {
+    const x = d.data();
+    list.push({ id: x.id || d.id, name: x.name || '', earned: parseInt(x.earned) || 0,
+                redeemed: parseInt(x.redeemed) || 0, remaining: parseInt(x.remaining) || 0, av: x.av || '🌟' });
+  });
+  list.sort((a, b) => b.earned - a.earned);
+  return list.slice(0, 100);
+}
+
+async function _getSummary() {
+  const ps = await db.collection('players').get();
+  let joined = 0, totalEarned = 0, totalRedeemed = 0;
+  ps.forEach(d => {
+    const x = d.data();
+    if (x.status === 'เข้าร่วมแล้ว') joined++;
+    totalEarned   += parseInt(x.earned)   || 0;
+    totalRedeemed += parseInt(x.redeemed) || 0;
+  });
+  const rs = await db.collection('redemptions').get();
+  const byReward = {}; let totalRedemptions = 0;
+  rs.forEach(d => { const r = String(d.data().reward || ''); if (r) { byReward[r] = (byReward[r] || 0) + 1; totalRedemptions++; } });
+  return { ok: true, totalStudents: STUDENT_IDS.length, joined, notJoined: STUDENT_IDS.length - joined,
+           totalEarned, totalRedeemed, totalRedemptions, byReward };
 }
 
 // =========================================================
